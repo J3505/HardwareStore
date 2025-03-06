@@ -15,12 +15,13 @@ export class ProductService {
     try {
       // Verificar si existe la categoría
       const category = await this.prisma.category.findUnique({
-        where: { id: createProductDto.category_id },
+        where: { name: createProductDto.category_name },
       });
 
       if (!category) {
         throw new NotFoundException(
-          `La categoría con ID ${createProductDto.category_id} no existe`,
+          // `La categoría con ID ${createProductDto.category_id} no existe`,
+          `La categoría con ID ${createProductDto.category_name} no existe`,
         );
       }
 
@@ -51,7 +52,8 @@ export class ProductService {
           image_url: createProductDto.image_url,
           category: {
             connect: {
-              id: createProductDto.category_id,
+              // id: createProductDto.category_id,
+              name: createProductDto.category_name,
             },
           },
         },
@@ -62,7 +64,10 @@ export class ProductService {
       });
       return product;
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException(
@@ -73,6 +78,7 @@ export class ProductService {
 
   async findAll() {
     return this.prisma.product.findMany({
+      orderBy: { created_at: 'desc' },
       include: {
         category: true,
         salesDetail: true,
@@ -80,7 +86,7 @@ export class ProductService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -102,7 +108,9 @@ export class ProductService {
     });
 
     if (!category) {
-      throw new NotFoundException(`Categoría con ID ${categoryId} no encontrada`);
+      throw new NotFoundException(
+        `Categoría con ID ${categoryId} no encontrada`,
+      );
     }
 
     return this.prisma.product.findMany({
@@ -116,11 +124,11 @@ export class ProductService {
     });
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto) {
+  update(id: string, updateProductDto: UpdateProductDto) {
     return `This action updates a #${id} product`;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       await this.findOne(id);
       return this.prisma.product.delete({
