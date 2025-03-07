@@ -124,8 +124,71 @@ export class ProductService {
     });
   }
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    try {
+      // Verificar si existe el producto
+      const existingProduct = await this.findOne(id);
+
+      // Si se está actualizando la categoría, verificar que exista
+      if (updateProductDto.category_name) {
+        const category = await this.prisma.category.findUnique({
+          where: { name: updateProductDto.category_name },
+        });
+
+        if (!category) {
+          throw new NotFoundException(
+            `La categoría ${updateProductDto.category_name} no existe`,
+          );
+        }
+      }
+
+      // Validar stock si se están actualizando los valores relacionados
+      const newMinStock = updateProductDto.min_stock ?? existingProduct.min_stock;
+      const newMaxStock = updateProductDto.max_stock ?? existingProduct.max_stock;
+      const newStock = updateProductDto.stock ?? existingProduct.stock;
+
+      if (newMinStock > newMaxStock) {
+        throw new BadRequestException(
+          'El stock mínimo no puede ser mayor al stock máximo',
+        );
+      }
+
+      if (newStock < newMinStock || newStock > newMaxStock) {
+        throw new BadRequestException(
+          'El stock debe estar entre el mínimo y máximo establecido',
+        );
+      }
+
+      // Actualizar el producto
+      const updateData: any = { ...updateProductDto };
+      if (updateProductDto.category_name) {
+        updateData.category = {
+          connect: { name: updateProductDto.category_name },
+        };
+        delete updateData.category_name; // Eliminar para evitar conflicto con Prisma
+      }
+
+      const updatedProduct = await this.prisma.product.update({
+        where: { id },
+        data: updateData,
+        include: {
+          category: true,
+          salesDetail: true,
+        },
+      });
+
+      return updatedProduct;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al actualizar producto: ${error.message || error}`,
+      );
+    }
   }
 
   async remove(id: string) {
