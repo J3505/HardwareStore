@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -49,6 +50,26 @@ export class CategoryService {
     }
 
     return category;
+  }
+
+  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    try {
+      await this.findOne(id);
+      return await this.prisma.category.update({
+        where: { id },
+        data: updateCategoryDto,
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error.code === 'P2002') {
+        throw new BadRequestException('Ya existe una categoría con ese nombre');
+      }
+      throw new BadRequestException(
+        `Error al actualizar categoría: ${error.message || error}`,
+      );
+    }
   }
 
   async remove(id: number) {
