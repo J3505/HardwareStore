@@ -125,6 +125,8 @@ export class ProductService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
+    console.log(updateProductDto);
+
     try {
       // Verificar si existe el producto
       const existingProduct = await this.findOne(id);
@@ -143,8 +145,10 @@ export class ProductService {
       }
 
       // Validar stock si se están actualizando los valores relacionados
-      const newMinStock = updateProductDto.min_stock ?? existingProduct.min_stock;
-      const newMaxStock = updateProductDto.max_stock ?? existingProduct.max_stock;
+      const newMinStock =
+        updateProductDto.min_stock ?? existingProduct.min_stock;
+      const newMaxStock =
+        updateProductDto.max_stock ?? existingProduct.max_stock;
       const newStock = updateProductDto.stock ?? existingProduct.stock;
 
       if (newMinStock > newMaxStock) {
@@ -176,6 +180,7 @@ export class ProductService {
           salesDetail: true,
         },
       });
+      // console.log(updateData);
 
       return updatedProduct;
     } catch (error) {

@@ -4,7 +4,7 @@
 /build
 /pgadmin
 /postgres
-
+/migrations
 # Logs
 logs
 *.log

@@ -5,7 +5,7 @@ import {
   IsOptional,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
@@ -18,26 +18,30 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   price: number;
 
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
   @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   stock: number;
 
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
   @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   min_stock: number;
 
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
   @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   max_stock: number;
 
   // @IsNumber()
